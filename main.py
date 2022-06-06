@@ -1,0 +1,59 @@
+from flask import Flask, render_template, redirect, url_for, flash, request, session
+from flask_bootstrap import Bootstrap
+from flask_sqlalchemy import SQLAlchemy
+import os
+from datetime import datetime as dt
+
+app = Flask(__name__)
+app.config["SECRET_KEY"] = "SECRET_KEY"
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DATABASE_URL", "sqlite:///todolist.db")
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+db = SQLAlchemy(app)
+Bootstrap(app)
+
+
+class ToDoDB(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    task = db.Column(db.String(2000), unique=False, nullable=False)
+    active = db.Column(db.Boolean, nullable=False)
+    date = db.Column(db.String(250), nullable=False)
+
+
+db.create_all()
+
+
+@app.route("/", methods=["GET", "POST"])
+def home():
+    if request.method == "POST":
+        new_task = ToDoDB(
+            task=request.form["task"],
+            active=True,
+            date=dt.now().strftime("%Y.%m.%d.")
+        )
+        db.session.add(new_task)
+        db.session.commit()
+        return redirect(url_for("home"))
+    tasks = ToDoDB.query.all()
+    length = len(tasks)
+    return render_template("index.html", tasks=tasks, len=length)
+
+
+@app.route("/delete/<int:task_id>", methods=["GET", "POST"])
+def delete_task(task_id):
+    task_to_delete = ToDoDB.query.get(task_id)
+    db.session.delete(task_to_delete)
+    db.session.commit()
+    return redirect(url_for("home"))
+
+
+@app.route("/finish/<int:task_id>", methods=["GET", "POST"])
+def finish_task(task_id):
+    task_to_finish = ToDoDB.query.get(task_id)
+    task_to_finish.active = False
+    db.session.commit()
+    return redirect(url_for("home"))
+
+
+if __name__ == "__main__":
+    app.run(debug=True)
