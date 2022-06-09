@@ -3,6 +3,7 @@ from flask_bootstrap import Bootstrap
 from flask_sqlalchemy import SQLAlchemy
 import os
 from datetime import datetime as dt
+from forms import AddTaskForm
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "SECRET_KEY"
@@ -18,6 +19,7 @@ class ToDoDB(db.Model):
     task = db.Column(db.String(2000), unique=False, nullable=False)
     active = db.Column(db.Boolean, nullable=False)
     date = db.Column(db.String(250), nullable=False)
+    description = db.Column(db.String(2000), nullable=True)
 
 
 db.create_all()
@@ -25,18 +27,20 @@ db.create_all()
 
 @app.route("/", methods=["GET", "POST"])
 def home():
-    if request.method == "POST":
+    form = AddTaskForm()
+    if form.validate_on_submit():
         new_task = ToDoDB(
-            task=request.form["task"],
+            task=form.task.data,
             active=True,
-            date=dt.now().strftime("%Y.%m.%d. %H:%M")
+            date=dt.now().strftime("%Y.%m.%d. %H:%M"),
+            description=form.description.data
         )
         db.session.add(new_task)
         db.session.commit()
         return redirect(url_for("home"))
     tasks = ToDoDB.query.all()
     length = len(tasks)
-    return render_template("index.html", tasks=tasks, len=length)
+    return render_template("index.html", tasks=tasks, len=length, form=form)
 
 
 @app.route("/delete/<int:task_id>", methods=["GET", "POST"])
