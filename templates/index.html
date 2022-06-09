@@ -31,7 +31,9 @@
                 {% endif %}
                 <div class="card-body">
                     <p class="card-text">...</p>
+                {% if task.active %}
                 <a href="{{ url_for('finish_task', task_id=task.id) }}" class="btn btn-primary">Task done</a>
+                {% endif %}
                   <div class="clearfix">
                     <span class="float-start">{{ task.date }}</span>
                     <span class="float-end"><a href="{{ url_for('delete_task', task_id=task.id) }}" class="btn-close"></a></span>
