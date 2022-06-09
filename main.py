@@ -29,7 +29,7 @@ def home():
         new_task = ToDoDB(
             task=request.form["task"],
             active=True,
-            date=dt.now().strftime("%Y.%m.%d.")
+            date=dt.now().strftime("%Y.%m.%d. %H:%M")
         )
         db.session.add(new_task)
         db.session.commit()
