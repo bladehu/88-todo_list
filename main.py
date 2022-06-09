@@ -1,6 +1,7 @@
-from flask import Flask, render_template, redirect, url_for, flash, request, session
+from flask import Flask, render_template, redirect, url_for, session
 from flask_bootstrap import Bootstrap
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import or_
 import os
 from datetime import datetime as dt
 from forms import AddTaskForm
@@ -39,8 +40,8 @@ def home():
         db.session.commit()
         return redirect(url_for("home"))
     tasks = ToDoDB.query.all()
-    length = len(tasks)
-    return render_template("index.html", tasks=tasks, len=length, form=form)
+
+    return render_template("index.html", tasks=tasks, form=form)
 
 
 @app.route("/delete/<int:task_id>", methods=["GET", "POST"])
@@ -56,6 +57,15 @@ def finish_task(task_id):
     task_to_finish = ToDoDB.query.get(task_id)
     task_to_finish.active = False
     db.session.commit()
+    return redirect(url_for("home"))
+
+
+@app.route("/delete-all", methods=["GET", "POST"])
+def delete_all_finished_tasks():
+    tasks_to_delete = ToDoDB.query.filter_by(active=0).all()
+    for task in tasks_to_delete:
+        db.session.delete(task)
+        db.session.commit()
     return redirect(url_for("home"))
 
 
