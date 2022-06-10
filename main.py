@@ -1,7 +1,6 @@
-from flask import Flask, render_template, redirect, url_for, session
+from flask import Flask, render_template, redirect, url_for
 from flask_bootstrap import Bootstrap
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import or_
 import os
 from datetime import datetime as dt
 from forms import AddTaskForm
